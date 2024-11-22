@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Will you escape?</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>RESTRICTED ACCESS</h1>
+        <form id="codeForm">
+            <input type="password" id="password" placeholder="Enter the code..." required>
+            <button type="submit">Submit</button>
+        </form>
+        <div id="feedback"></div>
+        <div class="countdown-container">
+            <span class="countdown-timer"></span>
+        </div>
+    </div>
+
+    <div id="loadingScreen">
+        <div class="loading-text"></div>
+    </div>
+
+    <img id="jumpscare" alt="jumpscare">
+    <script src="script.js"></script>
+    
+</body>
+</html>
