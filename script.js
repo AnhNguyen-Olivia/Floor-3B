@@ -3,8 +3,8 @@ const MAX_ATTEMPTS = 1;
 const COOLDOWN_TIME = 15000; // 15 seconds
 const JUMPSCARE_DURATION = 5000;
 
-let attemptCount = 0;
-let lastAttemptTime = 0;
+let attemptCount = parseInt(localStorage.getItem('attemptCount')) || 0;
+let lastAttemptTime = parseInt(localStorage.getItem('lastAttemptTime')) || 0;
 let isLocked = false;
 let isCooldownActive = false;
 let messageInterval;
@@ -12,31 +12,38 @@ let currentMessageIndex = 0;
 
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
+    // Check lockdown status immediately on page load
+    checkLockdownStatus();
+
     // Preload resources
     const screamSound = new Audio("audio/full-golden-freddy-scream.mp3");
-    let isAudioLoaded = false;
-    let isImageLoaded = false;
-
-    // Audio loading promise
+    const jumpscareImage = new Image();
+    
+    // Load audio
     const audioLoadPromise = new Promise((resolve) => {
         screamSound.addEventListener('canplaythrough', () => {
-            isAudioLoaded = true;
             resolve();
         });
         screamSound.load();
     });
 
-    // Image loading after audio
-    const jumpscareImage = new Image();
-    const imageLoadPromise = audioLoadPromise.then(() => {
-        return new Promise((resolve) => {
-            jumpscareImage.onload = () => {
-                isImageLoaded = true;
-                resolve();
-            };
-            jumpscareImage.src = "pics/the picture.jpg";
-        });
+    // Load image
+    const imageLoadPromise = new Promise((resolve) => {
+        jumpscareImage.onload = () => {
+            resolve();
+        };
+        jumpscareImage.src = "pics/the picture.jpg";
     });
+
+    function checkLockdownStatus() {
+        const cooldownTime = isInCooldown();
+        if (cooldownTime > 0) {
+            isLocked = true;
+            isCooldownActive = true;
+            document.getElementById('codeForm').classList.add('disabled');
+            startCooldown();
+        }
+    }
 
     // Password hashing function
     async function hashPassword(password) {
@@ -49,12 +56,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Cooldown check function
     function isInCooldown() {
-        if (isCooldownActive && attemptCount >= MAX_ATTEMPTS) {
+        if (attemptCount >= MAX_ATTEMPTS) {
             const currentTime = Date.now();
             if (currentTime - lastAttemptTime < COOLDOWN_TIME) {
                 return Math.ceil((COOLDOWN_TIME - (currentTime - lastAttemptTime)) / 1000);
             }
+            // Reset attempts if cooldown is over
             attemptCount = 0;
+            localStorage.setItem('attemptCount', '0');
+            localStorage.removeItem('lastAttemptTime');
             isCooldownActive = false;
             return 0;
         }
@@ -68,32 +78,16 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (seconds > 0) {
             countdownContainer.style.display = 'flex';
-            countdownTimer.textContent = seconds;
+            countdownTimer.textContent = `${seconds}`;
         } else {
             countdownContainer.style.display = 'none';
         }
     }
 
-    function createBloodDrips() {
-        const bloodDrips = document.querySelector('.blood-drips');
-        const numberOfDrips = 20;
-
-        for (let i = 0; i < numberOfDrips; i++) {
-            const drip = document.createElement('div');
-            drip.className = 'blood-drip';
-            drip.style.left = `${Math.random() * 100}%`;
-            drip.style.animationDelay = `${Math.random() * 4}s`;
-            drip.style.animationDuration = `${3 + Math.random() * 2}s`;
-            bloodDrips.appendChild(drip);
-        }
-    }
-    createBloodDrips();
-
-    setInterval(createBloodDrips, 6000);
-    
     // Start cooldown timer
     function startCooldown() {
         lastAttemptTime = Date.now();
+        localStorage.setItem('lastAttemptTime', lastAttemptTime.toString());
         isCooldownActive = true;
         
         function updateCooldownMessage() {
@@ -128,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateLoadingMessage() {
         const loadingText = document.querySelector('.loading-text');
-        if (loadingText && loadingText.offsetParent !== null) {
+        if (loadingText) {
             loadingText.textContent = creepyMessages[currentMessageIndex];
             currentMessageIndex = (currentMessageIndex + 1) % creepyMessages.length;
         }
@@ -150,21 +144,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const jumpscare = document.getElementById('jumpscare');
         const form = document.getElementById('codeForm');
         
-        if (!isAudioLoaded || !isImageLoaded) {
-            console.error("Resources not fully loaded");
-            return;
-        }
-        
         screamSound.currentTime = 0;
-        screamSound.play().then(() => {
-            setTimeout(() => {
-                jumpscare.src = jumpscareImage.src;
-                jumpscare.style.display = 'flex';
-                document.body.classList.add('shake');
-            }, 500);
-        }).catch(error => {
+        screamSound.play().catch(error => {
             console.error("Audio playback failed:", error);
         });
+        
+        setTimeout(() => {
+            jumpscare.src = jumpscareImage.src;
+            jumpscare.style.display = 'block';
+            document.body.classList.add('shake');
+        }, 500);
         
         setTimeout(() => {
             jumpscare.style.display = 'none';
@@ -208,11 +197,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (hashedInput !== PASS_HASH) {
             attemptCount++;
+            localStorage.setItem('attemptCount', attemptCount.toString());
             isLocked = true;
             form.classList.add('disabled');
             
             feedback.textContent = attemptCount >= MAX_ATTEMPTS 
-                ? `Wrong password. Please wait...`
+                ? 'Wrong password. Please wait...'
                 : `Wrong password. ${MAX_ATTEMPTS - attemptCount} attempts remaining.`;
             
             const loadingScreen = document.getElementById('loadingScreen');
@@ -234,11 +224,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .catch(error => console.error("Resource loading failed:", error));
         } else {
-            const redirectURL = "https://www.youtube.com/watch?v=D-UmfqFjpl0";
             feedback.textContent = "Access granted!";
-            if (typeof redirectURL !== 'undefined') {
-                window.open(redirectURL, "_blank");
-            }
+            setTimeout(() => {
+                window.open("https://www.youtube.com/watch?v=D-UmfqFjpl0", "_blank");
+            }, 1000);
         }
     });
 });
