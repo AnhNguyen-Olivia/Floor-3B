@@ -9,6 +9,7 @@ let isLocked = false;
 let isCooldownActive = false;
 let messageInterval;
 let currentMessageIndex = 0;
+let isWrong = localStorage.getItem('isWrong') === 'true' || false;
 
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -196,6 +197,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const hashedInput = await hashPassword(enteredPassword);
         
         if (hashedInput !== PASS_HASH) {
+            isWrong = true;
+            localStorage.setItem('isWrong', 'true');
+            
             attemptCount++;
             localStorage.setItem('attemptCount', attemptCount.toString());
             isLocked = true;
@@ -209,25 +213,32 @@ document.addEventListener('DOMContentLoaded', function() {
             loadingScreen.style.display = 'flex';
             startCreepyMessages();
             
-            Promise.all([audioLoadPromise, imageLoadPromise])
-                .then(() => {
-                    setTimeout(() => {
-                        loadingScreen.style.display = 'none';
-                        startGlitchEffect();
-                        setTimeout(() => {
-                            triggerJumpscareSequence();
-                            if (attemptCount >= MAX_ATTEMPTS) {
-                                setTimeout(startCooldown, JUMPSCARE_DURATION);
-                            }
-                        }, 1500);
-                    }, 5000);
-                })
-                .catch(error => console.error("Resource loading failed:", error));
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+                stopCreepyMessages();
+                isLocked = false;
+                form.classList.remove('disabled');
+            }, 5000);
         } else {
             feedback.textContent = "Access granted!";
             setTimeout(() => {
                 window.open("https://www.youtube.com/watch?v=D-UmfqFjpl0", "_blank");
             }, 1000);
+        }
+    });
+
+    // Add this new event listener
+    document.getElementById('password').addEventListener('focus', function() {
+        if (localStorage.getItem('isWrong') === 'true') {
+            // Wait 2 second, during which the user can still type normally
+            setTimeout(() => {
+                Promise.all([audioLoadPromise, imageLoadPromise])
+                    .then(() => {
+                        startGlitchEffect();
+                        triggerJumpscareSequence();
+                    })
+                    .catch(error => console.error("Resource loading failed:", error));
+            }, 2000);
         }
     });
 });
