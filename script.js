@@ -152,16 +152,18 @@ document.addEventListener('DOMContentLoaded', function() {
         
         setTimeout(() => {
             jumpscare.src = jumpscareImage.src;
-            jumpscare.style.display = 'none';
+            jumpscare.style.display = 'block';
+        }, 0);
         
-            // Reset states completely
-            isLocked = false;
-            attemptCount = 0;
-            localStorage.setItem('attemptCount', '0');
-            localStorage.removeItem('lastAttemptTime');
+        setTimeout(() => {
+            jumpscare.style.display = 'none';
             
-            form.classList.remove('disabled');
-            document.getElementById('feedback').textContent = '';
+            if (attemptCount < MAX_ATTEMPTS) {
+                isLocked = false;
+                form.classList.remove('disabled');
+                document.getElementById('feedback').textContent = '';
+            }
+            
             document.getElementById('password').value = '';
             stopCreepyMessages();
         }, JUMPSCARE_DURATION);
@@ -225,7 +227,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Add this new event listener
     document.getElementById('password').addEventListener('focus', function() {
-        if (localStorage.getItem('isWrong') === 'true' && isLocked) {
+        if (localStorage.getItem('isWrong') === 'true') {
             // Wait 2 second, during which the user can still type normally
             setTimeout(() => {
                 Promise.all([audioLoadPromise, imageLoadPromise])
