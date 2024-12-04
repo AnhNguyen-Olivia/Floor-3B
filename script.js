@@ -160,6 +160,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (attemptCount < MAX_ATTEMPTS) {
                 isLocked = false;
+                attemptCount = 0;
+                localStorage.setItem('attemptCount', '0');
+                localStorage.removeItem('lastAttemptTime');
                 form.classList.remove('disabled');
                 document.getElementById('feedback').textContent = '';
             }
@@ -227,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Add this new event listener
     document.getElementById('password').addEventListener('focus', function() {
-        if (localStorage.getItem('isWrong') === 'true') {
+        if (localStorage.getItem('isWrong') === 'true' && isLocked) {
             // Wait 2 second, during which the user can still type normally
             setTimeout(() => {
                 Promise.all([audioLoadPromise, imageLoadPromise])
