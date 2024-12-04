@@ -152,21 +152,16 @@ document.addEventListener('DOMContentLoaded', function() {
         
         setTimeout(() => {
             jumpscare.src = jumpscareImage.src;
-            jumpscare.style.display = 'block';
-        }, 0);
-        
-        setTimeout(() => {
             jumpscare.style.display = 'none';
+        
+            // Reset states completely
+            isLocked = false;
+            attemptCount = 0;
+            localStorage.setItem('attemptCount', '0');
+            localStorage.removeItem('lastAttemptTime');
             
-            if (attemptCount < MAX_ATTEMPTS) {
-                isLocked = false;
-                attemptCount = 0;
-                localStorage.setItem('attemptCount', '0');
-                localStorage.removeItem('lastAttemptTime');
-                form.classList.remove('disabled');
-                document.getElementById('feedback').textContent = '';
-            }
-            
+            form.classList.remove('disabled');
+            document.getElementById('feedback').textContent = '';
             document.getElementById('password').value = '';
             stopCreepyMessages();
         }, JUMPSCARE_DURATION);
