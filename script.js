@@ -9,8 +9,7 @@ let isLocked = false;
 let isCooldownActive = false;
 let messageInterval;
 let currentMessageIndex = 0;
-let isWrong = localStorage.getItem('isWrong') === 'false' || false;
-let jumpscareTriggered = false; // New flag to track jumpscare state
+let isWrong = localStorage.getItem('isWrong') === 'true' || false;
 
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -213,15 +212,13 @@ document.addEventListener('DOMContentLoaded', function() {
             startCreepyMessages();
             
             setTimeout(() => {
-                loadingScreen.style.display = 'flex';
+                loadingScreen.style.display = 'none';
                 stopCreepyMessages();
                 isLocked = false;
                 form.classList.remove('disabled');
             }, 5000);
         } else {
             feedback.textContent = "Access granted!";
-            localStorage.setItem('isWrong', 'false');
-            jumpscareTriggered = false;
             setTimeout(() => {
                 window.open("https://www.youtube.com/watch?v=D-UmfqFjpl0", "_blank");
             }, 1000);
@@ -230,22 +227,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Add this new event listener
     document.getElementById('password').addEventListener('focus', function() {
-        // Only trigger jumpscare if:
-        // 1. The last attempt was wrong 
-        // 2. Jumpscare hasn't been triggered yet
-        if (localStorage.getItem('isWrong') === 'true' && !jumpscareTriggered) {
-            // Wait 2 seconds, during which the user can still type normally
+        if (localStorage.getItem('isWrong') === 'true') {
+            // Wait 2 second, during which the user can still type normally
             setTimeout(() => {
                 Promise.all([audioLoadPromise, imageLoadPromise])
                     .then(() => {
                         startGlitchEffect();
                         triggerJumpscareSequence();
-                        
-                        // Mark jumpscare as triggered
-                        jumpscareTriggered = true;
-                        
-                        // Optional: Reset isWrong after jumpscare
-                        localStorage.setItem('isWrong', 'false');
                     })
                     .catch(error => console.error("Resource loading failed:", error));
             }, 2000);
