@@ -153,12 +153,10 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             jumpscare.src = jumpscareImage.src;
             jumpscare.style.display = 'block';
-            document.body.classList.add('shake');
-        }, 500);
+        }, 0);
         
         setTimeout(() => {
             jumpscare.style.display = 'none';
-            document.body.classList.remove('shake');
             
             if (attemptCount < MAX_ATTEMPTS) {
                 isLocked = false;
@@ -239,6 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     })
                     .catch(error => console.error("Resource loading failed:", error));
             }, 2000);
+            localStorage.setItem('isWrong', 'false')
         }
     });
 });
