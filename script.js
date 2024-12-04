@@ -9,7 +9,7 @@ let isLocked = false;
 let isCooldownActive = false;
 let messageInterval;
 let currentMessageIndex = 0;
-let isWrong = localStorage.getItem('isWrong') === 'false' || false;
+let isWrong = localStorage.getItem('isWrong') === 'true';
 
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
