@@ -145,16 +145,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const jumpscare = document.getElementById('jumpscare');
         const form = document.getElementById('codeForm');
         
+        // Start audio first
         screamSound.currentTime = 0;
         screamSound.play().catch(error => {
             console.error("Audio playback failed:", error);
         });
-        
+
+        // Delay the image display by 1 second
         setTimeout(() => {
             jumpscare.src = jumpscareImage.src;
             jumpscare.style.display = 'block';
-        }, 0);
-        
+        }, 1000);
+
         setTimeout(() => {
             jumpscare.style.display = 'none';
             
@@ -226,18 +228,24 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Add this new event listener
-    document.getElementById('password').addEventListener('focus', function() {
+    document.getElementById('password').addEventListener('focus', function () {
         if (localStorage.getItem('isWrong') === 'true') {
-            // Wait 2 second, during which the user can still type normally
-            setTimeout(() => {
+            // Wait 2 seconds, during which the user can still type normally
                 Promise.all([audioLoadPromise, imageLoadPromise])
                     .then(() => {
-                        startGlitchEffect();
-                        triggerJumpscareSequence();
+                        const loadingScreen = document.getElementById('loadingScreen');
+                        setTimeout(() => {
+                            loadingScreen.style.display = 'none';
+                            setTimeout(() => {                                
+                                triggerJumpscareSequence();
+                                if (attemptCount >= MAX_ATTEMPTS) {
+                                    setTimeout(startCooldown, JUMPSCARE_DURATION);
+                                }
+                            }, 1500);
+                        }, 1500);
                     })
                     .catch(error => console.error("Resource loading failed:", error));
-            }, 2000);
-            localStorage.setItem('isWrong', 'false')
+            localStorage.setItem('isWrong', 'false');
         }
-    });
+    });    
 });
